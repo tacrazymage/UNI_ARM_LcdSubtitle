@@ -8,14 +8,17 @@ void SetSysClock(void);
 void delayMs(uint32_t ms);
 void delayUs(uint32_t us);
 void gpio_init(void);
+char stringBreaker(int pos, int col);
 
 
 const uint8_t numRows = 4;
 const uint8_t numCols = 20;
 char subtitle[] = "The quick brown fox jumps over the lazy dog :)";
+//char subtitle[] = "Hi mi";
+int subsize = sizeof(subtitle)-1;
 
 int main(){
-	micros=0;
+	micros=0; //init delays
 	SetSysClock();
 	gpio_init();
 	SysTick_Config(48);
@@ -24,18 +27,33 @@ int main(){
 	TF_lcdClear();
 	TF_lcdGotoXY(1,1);
 	//TF_lcdPrint((uint8_t*) "I'm Taha falahati from thetick");
+	int pos=0;
+	uint8_t gap = 5;
+	
 	while(1){
-		for(int pos=0; pos<sizeof(subtitle)+(numCols); pos++){
-			for(int x=1; x<=numCols; x++){
-				TF_lcdGotoXY(4,x);
-				char* tmp = subtitle + pos + x -1 -numCols;
-				if((tmp<subtitle) || (tmp>(subtitle+sizeof(subtitle)-2))) // || tmp>subtitle+sizeof(subtitle)
-					TF_lcdPrintCh(' ');
-				else
-					TF_lcdPrintCh(*(tmp));
+		for(int x=0; x<numCols; x++){
+			TF_lcdGotoXY(4,x+1);
+			char* i;
+			char tmp;
+			i = subtitle + x + pos - numCols;
+			if(i < subtitle){
+				tmp = ' ';
+			}else if(i >= subtitle+subsize){
+				if(i >= subtitle+subsize+gap){
+					tmp = *(i - gap - subsize);
+				}else
+					tmp = ' ';
+				if(pos >= subsize+numCols+gap){
+					pos=numCols;
+				}
+			}else{
+				tmp = *(i);
 			}
-			delayMs(160);
+			TF_lcdPrintCh(tmp);
+			
 		}
+		delayMs(150);
+		pos++;
 	}
 }
 
@@ -71,5 +89,9 @@ void gpio_init(void){
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 	GPIOA->MODER |= 0x5555;
 	GPIOA->PUPDR |= 0xAAAA;
+}
+
+char stringBreaker(int pos, int col){
+	
 }
 
